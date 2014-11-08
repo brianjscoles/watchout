@@ -2,9 +2,29 @@
 
 /* Note: an asteroid image is included in this repo.
 Feel free to use it if you like. */
+html{
+  height: 100%;
+  width: 100%;
+}
 
 .play-space{
   width: 500px;
   height: 500px;
   border: 2px solid black;
+}
+
+div {
+  height: 10px;
+  background-color: blue;
+  margin: 5px;
+  width:0px;
+  font-size: 8px;
+  color: white;
+  text-align: right;
+}
+
+span {
+  height: 10px;
+  width: 50px;
+  background-color: green;
 }

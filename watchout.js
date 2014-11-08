@@ -68,7 +68,6 @@ var checkCollision = function() {
   plCoord[0] = pl[0][0].cx.animVal.value;
   plCoord[1] = pl[0][0].cy.animVal.value;
 
-
   var enemies = d3.selectAll(".enemy")
     .each(function() {
       var enemCoord= [];
@@ -83,14 +82,11 @@ var checkCollision = function() {
           var theScore = Number(d3.selectAll(".current").selectAll("span").text());
           var highScore = Number(d3.selectAll(".high").selectAll("span").text());
           var finalScore = Math.max(theScore, highScore);
-          console.log(theScore);
-          console.log(highScore);
 
           if (Number(d3.selectAll(".current").selectAll("span").text()) > 10) {
             var coll = Number(d3.selectAll(".collisions").selectAll("span").text());
             d3.selectAll(".collisions").selectAll("span").text(coll+1);
           }
-          console.log(finalScore);
           d3.selectAll(".current").selectAll("span").text(0);
           d3.selectAll(".high").selectAll("span").text(finalScore);
 
