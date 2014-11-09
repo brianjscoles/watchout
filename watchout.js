@@ -3,100 +3,94 @@
 var height = 500;
 var width = 500;
 var enemyRadius = 15;
-var numEnemies = 5;
-
+var numEnemies = 15;
+var highScore = 0;
+var currScore = 0;
+var collisions = 0;
+var duration = 2000;
+var hasCollidedRecently = false;
+var plCoord = [width/2,height/2];
 var playSpace = d3.select(".play-space")
   .style("background-color","lightgrey");
-
-var enemiesArr = [];
-for (var i = 0; i < numEnemies; i++) {
-  enemiesArr.push(0);
-}
-var enemy = playSpace.selectAll("circle").data(enemiesArr).enter().append("circle")
-  .attr("cx", function(){return enemyRadius+Math.random()*(width-enemyRadius*2)})
-  .attr("cy", function(){return enemyRadius+Math.random()*(height-enemyRadius*2)})
-  .attr("r", enemyRadius)
-  .attr("class", "enemy")
-  .style("fill", "black");
-
-
-var drag = d3.behavior.drag()
-  .on('drag', function (d) {
-      d3.select(this)
-      .attr("cx", d3.event.x)
-      .attr("cy", d3.event.y);
-  });
-
-var player = playSpace.selectAll("#player").data([0]).enter().append("circle")
-  .attr("cx", function(){return width/2})
-  .attr("cy", function(){return height/2})
-  .attr("r", enemyRadius)
-  .attr("id", "player")
-  .style("fill", "purple")
-  .call(drag);
 
 var makeNewPosition = function(){
   return enemyRadius+Math.random()*(width-enemyRadius*2);
 };
 
-var moveEnemies = function() {
-   d3.selectAll(".enemy")
-    .each(function(){
-      d3.select(this).transition().duration(2000)
-      .attr("cx", makeNewPosition())
-      .attr("cy", makeNewPosition())
+var randomSpeed = function(){
+  return Math.random()*duration/4 + duration*3/4;
+};
+
+var drag = d3.behavior.drag()
+  .on('drag', function (d) {
+    if (d3.event.x > enemyRadius && d3.event.x < width - enemyRadius &&
+      d3.event.y > enemyRadius && d3.event.y < height - enemyRadius) {
+      plCoord= [d3.event.x,d3.event.y];
+      d3.select(this)
+      .attr("cx", plCoord[0])
+      .attr("cy", plCoord[1]);
+    }
+  });
+
+var enemy = playSpace.selectAll("circle").data(d3.range(numEnemies)).enter().append("circle")
+  .attr("cx", makeNewPosition)
+  .attr("cy", makeNewPosition)
+  .attr("r", enemyRadius)
+  .attr("class", "enemy")
+  .style("fill", "black");
+
+
+var player = playSpace.selectAll("#player").data([0]).enter().append("circle")
+  .attr("cx", plCoord[0])
+  .attr("cy", plCoord[1])
+  .attr("r", enemyRadius)
+  .attr("id", "player")
+  .style("fill", "purple")
+  .call(drag);
+
+var moveEnemies = function(element) {
+  element.transition().duration(randomSpeed)
+    .attr("cx", makeNewPosition)
+    .attr("cy", makeNewPosition)
+    .each('end', function() {
+      moveEnemies(d3.select(this));
     });
 };
-moveEnemies();
 
-setInterval(moveEnemies, 2000);
-
-setInterval(function() {
-  checkCollision()
-},100);
-
-setInterval(function() {
-  var score = d3.selectAll(".current").selectAll("span").text();
-  score = Number(score) + 10;
-  d3.selectAll(".current").selectAll("span").text(score);
-}, 100);
+var incrScore = function() {
+  currScore += 1;
+  d3.selectAll(".current").selectAll("span").text(currScore);
+};
 
 var checkCollision = function() {
-  var plCoord = [0, 0];
-  var pl = d3.select("#player");
-
-  plCoord[0] = pl[0][0].cx.animVal.value;
-  plCoord[1] = pl[0][0].cy.animVal.value;
-
-  var enemies = d3.selectAll(".enemy")
+  var collisionThisCycle = false;
+  d3.selectAll(".enemy")
     .each(function() {
-      var enemCoord= [];
-      enemCoord[0] = this.cx.animVal.value;
-      enemCoord[1] = this.cy.animVal.value;
+      //if collision detected:
+      if ((Math.abs(this.cx.animVal.value-plCoord[0]) < 2*enemyRadius) &&
+          (Math.abs(this.cy.animVal.value-plCoord[1]) < 2*enemyRadius)) {
 
-      if ((Math.abs(enemCoord[0]-plCoord[0]) < 2*enemyRadius) &&
-          (Math.abs(enemCoord[1]-plCoord[1]) < 2*enemyRadius)) {
+        collisionThisCycle = true;
 
-          console.log('collision');
+        //if this is the first collision in "a while", update count
+        if (!hasCollidedRecently) {
+          d3.selectAll(".collisions").selectAll("span").text(++collisions);
+        }
 
-          var theScore = Number(d3.selectAll(".current").selectAll("span").text());
-          var highScore = Number(d3.selectAll(".high").selectAll("span").text());
-          var finalScore = Math.max(theScore, highScore);
-
-          if (Number(d3.selectAll(".current").selectAll("span").text()) > 10) {
-            var coll = Number(d3.selectAll(".collisions").selectAll("span").text());
-            d3.selectAll(".collisions").selectAll("span").text(coll+1);
-          }
-          d3.selectAll(".current").selectAll("span").text(0);
-          d3.selectAll(".high").selectAll("span").text(finalScore);
-
-
+        //update highscore and currentscore
+        highScore = Math.max(currScore, highScore);
+        currScore = 0;
+        d3.selectAll(".current").selectAll("span").text(currScore);
+        d3.selectAll(".high").selectAll("span").text(highScore);
       }
     });
-
-  //for enemies....
-  //asks each enemy to check if collides with mouse. reset score
-
-
-
+  hasCollidedRecently = collisionThisCycle;
 };
+
+d3.timer(incrScore);
+d3.timer(checkCollision);
+moveEnemies(d3.selectAll(".enemy"));
+
+
+
+

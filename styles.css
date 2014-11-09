@@ -2,10 +2,10 @@
 
 /* Note: an asteroid image is included in this repo.
 Feel free to use it if you like. */
-html{
+/*html{
   height: 100%;
   width: 100%;
-}
+}*/
 
 .play-space{
   width: 500px;
@@ -13,7 +13,7 @@ html{
   border: 2px solid black;
 }
 
-div {
+/*div {
   height: 10px;
   background-color: blue;
   margin: 5px;
@@ -28,3 +28,4 @@ span {
   width: 50px;
   background-color: green;
 }
+*/
